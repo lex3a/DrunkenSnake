@@ -1,32 +1,14 @@
 const canvas = document.createElement("canvas");
 document.body.appendChild(canvas);
-//canvas.style = "border: 3px solid black";
 canvas.width = window.innerWidth - 5;
 canvas.height = window.innerHeight - 5;
 const ctx = canvas.getContext("2d");
 const snakeHead = new Image();
 const beer = new Image();
 beer.src = "./assets/beer.png";
-пше;
 snakeHead.src = "./assets/head.png";
-// var context = new AudioContext();
 
 import { playSound, random } from "./game/utils.js";
-
-// function playSound(frequency, type) {
-//   o = context.createOscillator();
-//   g = context.createGain();
-//   o.type = type;
-//   o.connect(g);
-//   o.frequency.value = frequency;
-//   g.connect(context.destination);
-//   o.start(0);
-//   g.gain.exponentialRampToValueAtTime(0.00001, context.currentTime + 1);
-// }
-
-// function random(min, max) {
-//   return Math.floor(Math.random() * (max - min + 1) + min);
-// }
 
 class Food {
   constructor(width = 10, height = 10) {
@@ -55,16 +37,6 @@ class Food {
     ) {
       return 1;
     }
-    // if (
-    //   ((entity.snake[0].x >= this.x && entity.snake[0].x <= this.x + 10) ||
-    //     (entity.snake[0].x + 10 >= this.x &&
-    //       entity.snake[0].x + 10 <= this.x + 10)) &&
-    //   ((entity.snake[0].y >= this.y && entity.snake[0].y <= this.y + 10) ||
-    //     (entity.snake[0].y + 10 >= this.y &&
-    //       entity.snake[0].y + 10 <= this.y + 10))
-    // ) {
-    //   return 1;
-    // }
     return 0;
   }
 
@@ -78,14 +50,6 @@ class Food {
       }
     }
   }
-  //   if (this.foodCollision(entity)) {
-  //     playSound(830.6, "sine");
-  //     this.generateFood();
-  //     console.log("Food eaten", entity);
-  //     entity.snake.push({ x: 10, y: 0 });
-  //     entity.score++;
-  //   }
-  // }
 }
 
 class Snake {
@@ -318,19 +282,9 @@ class Snake {
   }
 
   update() {
-    //ctx.clearRect(0, 0, canvas.width, canvas.height);
     if (!this.isGameOver()) {
-      // this.drawScore();
       this.isSnakeOutsideCanvas();
-      //this.eatFood();
-      //this.generateFood();
-      //this.drawFood();
       this.move();
-      //this.drawSnake();
-      // setTimeout(
-      //   () => requestAnimationFrame(() => this.update()),
-      //   1000 / this.fpsInterval
-      // );
     } else {
       this.drawGameOver(this.displayGameOver);
       setTimeout(() => {
@@ -414,18 +368,12 @@ function render() {
     food.drawFood();
     food.eatFood(snakes);
   }
-  // food.drawFood(10, 10);
-  // foodTwo.drawFood(10, 10);
   snakes[0].update();
   snakes[0].drawScore(50, 20);
   snakes[0].drawSnake("green");
   snakes[1].update();
   snakes[1].drawScore(canvas.width - 100, 20);
   snakes[1].drawSnake("blue");
-  // food.eatFood(snake);
-  // food.eatFood(snakeTwo);
-  // foodTwo.eatFood(snake);
-  // foodTwo.eatFood(snakeTwo);
   setTimeout(() => requestAnimationFrame(() => render()), 1000 / 30);
 }
 
