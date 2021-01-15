@@ -109,30 +109,80 @@ function drawGameOver(entity1, entity2) {
   );
 }
 
+let showMenu = true;
+
+let mouseX;
+let mouseY;
+
+canvas.addEventListener("mousemove", function (event) {
+  // Check whether point is inside circle
+
+  mouseX = event.offsetX;
+  mouseY = event.offsetY;
+
+  // if (ctx.isPointInPath(circle, event.offsetX, event.offsetY)) {
+  //   ctx.fillStyle = "green";
+  // } else {
+  //   ctx.fillStyle = "red";
+  // }
+
+  // // Draw circle
+  // ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // ctx.fill(circle);
+});
+
+let currentSelection = 0;
+
+document.addEventListener("keydown", function (e) {
+  if (e.code === "ArrowDown") currentSelection++;
+  else if (e.code === "ArrowUp") currentSelection--;
+  if (currentSelection > 2) currentSelection = 0;
+  else if (currentSelection < 0) currentSelection = 2;
+  if (currentSelection == 0 && e.code === "Enter") showMenu = false;
+  else if (e.code === "Escape") showMenu = true;
+});
+
+function drawMenu() {
+  let arr = ["Start Game", "High Scores", "Settings"];
+  ctx.fillStyle = "green";
+  ctx.font = "48px serif";
+  for (let i = 0; i < arr.length; i++) {
+    if (i === currentSelection) {
+      ctx.fillStyle = "red";
+    } else {
+      ctx.fillStyle = "green";
+    }
+    ctx.fillText(arr[i], canvas.width / 2 - 96, canvas.height / 2 + 60 * i);
+  }
+}
+
 function render() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (showMenu) {
+    drawMenu();
+  } else {
+    if (
+      snakes[0].isEntitiesCollide(snakes[1]) ||
+      snakes[1].isEntitiesCollide(snakes[0])
+    ) {
+      drawGameOver(snakes[0], snakes[1]);
+      return;
+    }
 
-  if (
-    snakes[0].isEntitiesCollide(snakes[1]) ||
-    snakes[1].isEntitiesCollide(snakes[0])
-  ) {
-    drawGameOver(snakes[0], snakes[1]);
-    return;
-  }
+    if (gp) {
+      gamePadControlSnake(snakes[0], gp);
+    }
 
-  if (gp) {
-    gamePadControlSnake(snakes[0], gp);
-  }
+    for (let food of foods) {
+      food.drawFood(ctx);
+      food.eatFood(snakes);
+    }
 
-  for (let food of foods) {
-    food.drawFood(ctx);
-    food.eatFood(snakes);
-  }
-
-  for (let snake of snakes) {
-    snake.update();
-    snake.drawScore();
-    snake.drawSnake();
+    for (let snake of snakes) {
+      snake.update();
+      snake.drawScore();
+      snake.drawSnake();
+    }
   }
 
   setTimeout(() => requestAnimationFrame(() => render()), 1000 / 30);
