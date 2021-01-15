@@ -12,8 +12,12 @@ snakeHead.src = "./assets/head.png";
 import { playSound, random } from "./game/utils.js";
 import Food from "./game/Food.js";
 
+let keysPlayerOne = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
+let keysPlayerTwo = ["KeyW", "KeyS", "KeyA", "KeyD"];
+
 class Snake {
-  constructor(name = "Default", x = 0, y = 0, color = this.randomColor) {
+  constructor(name = "Default", keys, x = 0, y = 0, color = this.randomColor) {
+    this.keys = keys;
     this.x = x;
     this.y = y;
     this.color = color;
@@ -35,43 +39,19 @@ class Snake {
 
   logKey(e) {
     switch (e.code) {
-      case "ArrowUp":
+      case this.keys[0]:
         if (this.direction === "bottom") return;
         this.direction = "top";
         break;
-      case "ArrowDown":
+      case this.keys[1]:
         if (this.direction === "top") return;
         this.direction = "bottom";
         break;
-      case "ArrowLeft":
+      case this.keys[2]:
         if (this.direction === "right") return;
         this.direction = "left";
         break;
-      case "ArrowRight":
-        if (this.direction === "left") return;
-        this.direction = "right";
-        break;
-      default:
-        console.log("No direction", e.code);
-        break;
-    }
-  }
-
-  logKey2(e) {
-    switch (e.code) {
-      case "KeyW":
-        if (this.direction === "bottom") return;
-        this.direction = "top";
-        break;
-      case "KeyS":
-        if (this.direction === "top") return;
-        this.direction = "bottom";
-        break;
-      case "KeyA":
-        if (this.direction === "right") return;
-        this.direction = "left";
-        break;
-      case "KeyD":
+      case this.keys[3]:
         if (this.direction === "left") return;
         this.direction = "right";
         break;
@@ -256,13 +236,16 @@ class Snake {
 
 // let snake = new Snake("Player 1");
 // let snakeTwo = new Snake("Player 2", 60);
-let snakes = [new Snake("Player 1"), new Snake("Player 2", 60)];
+let snakes = [
+  new Snake("Player 1", keysPlayerOne),
+  new Snake("Player 2", keysPlayerTwo, 60),
+];
 let foods = [new Food(canvas, beer), new Food(canvas, beer)];
 // let food = new Food();
 // let foodTwo = new Food();
 
 document.addEventListener("keydown", snakes[0].logKey.bind(snakes[0]));
-document.addEventListener("keydown", snakes[1].logKey2.bind(snakes[1]));
+document.addEventListener("keydown", snakes[1].logKey.bind(snakes[1]));
 
 let gp;
 

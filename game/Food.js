@@ -1,4 +1,4 @@
-import { random } from "./utils.js";
+import { playSound, random } from "./utils.js";
 
 export default class Food {
   constructor(canvas, img, width = 10, height = 10) {
