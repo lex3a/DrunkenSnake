@@ -9,17 +9,59 @@ const beer = new Image();
 beer.src = "./assets/beer.png";
 snakeHead.src = "./assets/head.png";
 
-import { playSound, random } from "./game/utils.js";
+import { getRandomColor } from "./game/utils.js";
 import Food from "./game/Food.js";
 
-let keysPlayerOne = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
-let keysPlayerTwo = ["KeyW", "KeyS", "KeyA", "KeyD"];
+let playerOne = {
+  name: "Player One",
+  keys: ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"],
+  color: "green",
+  scorePosX: 50,
+  scorePosY: 20,
+};
+
+let playerTwo = {
+  name: "Player Two",
+  keys: ["KeyW", "KeyS", "KeyA", "KeyD"],
+  x: 60,
+  color: "blue",
+  scorePosX: canvas.width - 100,
+  scorePosY: 20,
+};
+
+let playerThree = {
+  name: "Player Three",
+  keys: ["KeyI", "KeyK", "KeyJ", "KeyL"],
+  x: 120,
+  color: "red",
+  scorePosX: canvas.width - 100,
+  scorePosY: canvas.height - 20,
+};
+
+let playerFour = {
+  name: "Player Four",
+  keys: ["Numpad8", "Numpad5", "Numpad4", "Numpad6"],
+  x: 180,
+  color: "yellow",
+  scorePosX: 50,
+  scorePosY: canvas.height - 20,
+};
 
 class Snake {
-  constructor(name = "Default", keys, x = 0, y = 0, color = this.randomColor) {
+  constructor({
+    name = "Default",
+    keys,
+    x = 0,
+    y = 0,
+    color = getRandomColor(),
+    scorePosX,
+    scorePosY,
+  }) {
     this.keys = keys;
     this.x = x;
     this.y = y;
+    this.scorePosX = scorePosX;
+    this.scorePosY = scorePosY;
     this.color = color;
     this.direction = "bottom";
     this.width = 10;
@@ -34,7 +76,6 @@ class Snake {
       { x: 180 + this.x, y: 50 },
       { x: 170 + this.x, y: 50 },
     ];
-    this.food = [];
   }
 
   logKey(e) {
@@ -61,58 +102,9 @@ class Snake {
     }
   }
 
-  generateFood() {
-    if (!this.food[0] && !this.food[1]) {
-      this.food[0] = random(1, canvas.width - 1);
-      this.food[1] = random(1, canvas.height - 1);
-    }
-  }
-
-  eatFood() {
-    if (this.foodCollision()) {
-      playSound(830.6, "sine");
-      this.food[0] = null;
-      this.food[1] = null;
-      this.snake.push({ x: this.x + 10, y: 0 });
-      this.fpsInterval += 2;
-      this.score++;
-    }
-  }
-
-  drawFood() {
-    ctx.fillStyle = "red";
-    ctx.drawImage(
-      beer,
-      0,
-      0,
-      10,
-      10,
-      this.food[0],
-      this.food[1],
-      this.width,
-      this.height
-    );
-  }
-
-  foodCollision() {
-    if (
-      ((this.snake[0].x >= this.food[0] &&
-        this.snake[0].x <= this.food[0] + this.width) ||
-        (this.snake[0].x + this.width >= this.food[0] &&
-          this.snake[0].x + this.width <= this.food[0] + this.width)) &&
-      ((this.snake[0].y >= this.food[1] &&
-        this.snake[0].y <= this.food[1] + this.height) ||
-        (this.snake[0].y + this.height >= this.food[1] &&
-          this.snake[0].y + this.height <= this.food[1] + this.height))
-    ) {
-      return 1;
-    }
-    return 0;
-  }
-
-  drawSnake(color) {
+  drawSnake() {
     let headImgPos = 0;
-    ctx.fillStyle = color;
+    ctx.fillStyle = this.color;
     for (let i = 0; i < this.snake.length; i++) {
       ctx.fillRect(this.snake[i].x, this.snake[i].y, this.width, this.height);
     }
@@ -200,9 +192,10 @@ class Snake {
     }
   }
 
-  drawScore(x, y) {
+  drawScore() {
+    ctx.fillStyle = this.color;
     ctx.font = "12px 'Press Start 2P'";
-    ctx.fillText(`Beer: ${this.score}`, x, y);
+    ctx.fillText(`Beer: ${this.score}`, this.scorePosX, this.scorePosY);
   }
 
   drawGameOver(toggle) {
@@ -234,18 +227,17 @@ class Snake {
   }
 }
 
-// let snake = new Snake("Player 1");
-// let snakeTwo = new Snake("Player 2", 60);
 let snakes = [
-  new Snake("Player 1", keysPlayerOne),
-  new Snake("Player 2", keysPlayerTwo, 60),
+  new Snake(playerOne),
+  new Snake(playerTwo),
+  new Snake(playerThree),
+  new Snake(playerFour),
 ];
 let foods = [new Food(canvas, beer), new Food(canvas, beer)];
-// let food = new Food();
-// let foodTwo = new Food();
 
-document.addEventListener("keydown", snakes[0].logKey.bind(snakes[0]));
-document.addEventListener("keydown", snakes[1].logKey.bind(snakes[1]));
+for (let snake of snakes) {
+  document.addEventListener("keydown", snake.logKey.bind(snake));
+}
 
 let gp;
 
@@ -297,6 +289,7 @@ function drawGameOver(entity1, entity2) {
 
 function render() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
   if (
     snakes[0].isEntitiesCollide(snakes[1]) ||
     snakes[1].isEntitiesCollide(snakes[0])
@@ -304,19 +297,22 @@ function render() {
     drawGameOver(snakes[0], snakes[1]);
     return;
   }
+
   if (gp) {
     gamePadControlSnake(snakes[0], gp);
   }
+
   for (let food of foods) {
     food.drawFood(ctx);
     food.eatFood(snakes);
   }
-  snakes[0].update();
-  snakes[0].drawScore(50, 20);
-  snakes[0].drawSnake("green");
-  snakes[1].update();
-  snakes[1].drawScore(canvas.width - 100, 20);
-  snakes[1].drawSnake("blue");
+
+  for (let snake of snakes) {
+    snake.update();
+    snake.drawScore();
+    snake.drawSnake();
+  }
+
   setTimeout(() => requestAnimationFrame(() => render()), 1000 / 30);
 }
 
