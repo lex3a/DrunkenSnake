@@ -7,6 +7,7 @@ const ctx = canvas.getContext("2d");
 const snakeHead = new Image();
 const beer = new Image();
 beer.src = "./assets/beer.png";
+пше;
 snakeHead.src = "./assets/head.png";
 // var context = new AudioContext();
 
