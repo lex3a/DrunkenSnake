@@ -6,6 +6,8 @@ const ctx = canvas.getContext("2d");
 
 const snakeHead = new Image();
 const beer = new Image();
+const grave = new Image();
+grave.src = "./assets/grave.png";
 beer.src = "./assets/beer.png";
 snakeHead.src = "./assets/head.png";
 
@@ -47,52 +49,68 @@ let playerFour = {
   scorePosY: canvas.height - 20,
 };
 
-let snakes = [
-  new Snake(playerOne),
-  new Snake(playerTwo),
-  new Snake(playerThree),
-  new Snake(playerFour),
-];
-let foods = [new Food(canvas, beer), new Food(canvas, beer)];
+let snakes = [new Snake(playerOne), new Snake(playerTwo)];
+
+function generateFood(count) {
+  let food = [];
+  for (let i = 0; i < count; i++) {
+    food.push(new Food(canvas, beer));
+  }
+  return food;
+}
+
+let foods = generateFood(100);
 
 for (let snake of snakes) {
   snake.setContext(ctx);
   snake.setHeadImg(snakeHead);
+  snake.setGraveImg(grave);
   document.addEventListener("keydown", snake.logKey.bind(snake));
 }
 
-let gp;
-
-function buttonPressed(b) {
-  if (typeof b == "object") {
-    return b.pressed;
-  }
-  return b == 1.0;
+let controller = {};
+let buttonsPressed = [];
+function gamepadHandler(e) {
+  controller = e.gamepad;
+  console.log(controller);
 }
 
-window.addEventListener("gamepadconnected", function (e) {
-  gp = navigator.getGamepads()[e.gamepad.index];
-  console.log(
-    "Gamepad connected at index %d: %s. %d buttons, %d axes.",
-    e.gamepad.index,
-    e.gamepad.id,
-    e.gamepad.buttons.length,
-    e.gamepad.axes.length
-  );
-});
+window.addEventListener("gamepadconnected", gamepadHandler);
 
-function gamePadControlSnake(entity, gp) {
-  if (buttonPressed(gp.buttons[0])) {
+function gamepadUpdateHandler() {
+  buttonsPressed = [];
+  if (controller.buttons) {
+    for (var b = 0; b < controller.buttons.length; b++) {
+      if (controller.buttons[b].pressed) {
+        buttonsPressed.push(b);
+        console.log(b);
+      }
+    }
+  }
+}
+
+function gamepadButtonPressedHandler(button) {
+  var press = false;
+  for (var i = 0; i < buttonsPressed.length; i++) {
+    if (buttonsPressed[i] == button) {
+      press = true;
+    }
+  }
+  return press;
+}
+
+function gamePadControlSnake(entity) {
+  if (gamepadButtonPressedHandler(0)) {
     //if (this.direction === "bottom") return;
     entity.direction = "top";
-  } else if (buttonPressed(gp.buttons[2])) {
+  } else if (gamepadButtonPressedHandler(1)) {
     //if (this.direction === "top") return;
     entity.direction = "bottom";
   }
-  if (buttonPressed(gp.buttons[1])) {
+  if (gamepadButtonPressedHandler(2)) {
     //if (this.direction === "right") return;
     entity.direction = "left";
-  } else if (buttonPressed(gp.buttons[3])) {
+  } else if (gamepadButtonPressedHandler(3)) {
     //if (this.direction === "left") return;
     entity.direction = "right";
   }
@@ -109,37 +127,35 @@ function drawGameOver(entity1, entity2) {
   );
 }
 
-let showMenu = true;
-
 let mouseX;
 let mouseY;
 
 canvas.addEventListener("mousemove", function (event) {
-  // Check whether point is inside circle
-
   mouseX = event.offsetX;
   mouseY = event.offsetY;
-
-  // if (ctx.isPointInPath(circle, event.offsetX, event.offsetY)) {
-  //   ctx.fillStyle = "green";
-  // } else {
-  //   ctx.fillStyle = "red";
-  // }
-
-  // // Draw circle
-  // ctx.clearRect(0, 0, canvas.width, canvas.height);
-  // ctx.fill(circle);
 });
 
+let gameState = "menu";
 let currentSelection = 0;
+let cnt = snakes.length;
 
 document.addEventListener("keydown", function (e) {
   if (e.code === "ArrowDown") currentSelection++;
   else if (e.code === "ArrowUp") currentSelection--;
   if (currentSelection > 2) currentSelection = 0;
   else if (currentSelection < 0) currentSelection = 2;
-  if (currentSelection == 0 && e.code === "Enter") showMenu = false;
-  else if (e.code === "Escape") showMenu = true;
+  if (
+    currentSelection == 0 &&
+    (e.code === "Enter" || gamepadButtonPressedHandler(11))
+  )
+    gameState = "game";
+  else if (e.code === "Escape") gameState = "menu";
+  else if (e.code === "Digit1") {
+    snakes.push(new Snake(playerThree));
+    snakes[cnt].setContext(ctx);
+    snakes[cnt].setHeadImg(snakeHead);
+    cnt++;
+  }
 });
 
 function drawMenu() {
@@ -158,7 +174,7 @@ function drawMenu() {
 
 function render() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  if (showMenu) {
+  if (gameState === "menu") {
     drawMenu();
   } else {
     if (
@@ -167,10 +183,6 @@ function render() {
     ) {
       drawGameOver(snakes[0], snakes[1]);
       return;
-    }
-
-    if (gp) {
-      gamePadControlSnake(snakes[0], gp);
     }
 
     for (let food of foods) {
@@ -185,6 +197,8 @@ function render() {
     }
   }
 
+  gamepadUpdateHandler();
+  gamePadControlSnake(snakes[0]);
   setTimeout(() => requestAnimationFrame(() => render()), 1000 / 30);
 }
 

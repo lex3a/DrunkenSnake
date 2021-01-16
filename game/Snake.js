@@ -13,6 +13,7 @@ export default class Snake {
     this.keys = keys;
     this.x = x;
     this.y = y;
+    this.alive = true;
     this.scorePosX = scorePosX;
     this.scorePosY = scorePosY;
     this.color = color;
@@ -37,6 +38,10 @@ export default class Snake {
 
   setHeadImg(img) {
     this.headImg = img;
+  }
+
+  setGraveImg(img) {
+    this.graveImg = img;
   }
 
   logKey(e) {
@@ -65,40 +70,63 @@ export default class Snake {
 
   drawSnake() {
     let headImgPos = 0;
-    this.ctx.fillStyle = this.color;
-    for (let i = 0; i < this.snake.length; i++) {
-      this.ctx.fillRect(
-        this.snake[i].x,
-        this.snake[i].y,
+    let headOffsetX = 0;
+    let headOffsetY = 0;
+    if (this.alive) {
+      this.ctx.fillStyle = this.color;
+      for (let i = 0; i < this.snake.length; i++) {
+        this.ctx.fillRect(
+          this.snake[i].x,
+          this.snake[i].y,
+          this.width,
+          this.height
+        );
+      }
+      switch (this.direction) {
+        case "top":
+          headImgPos = 0;
+          headOffsetX = 0;
+          headOffsetY = -3;
+          break;
+        case "right":
+          headImgPos = 10;
+          headOffsetX = 3;
+          headOffsetY = 0;
+          break;
+        case "bottom":
+          headImgPos = 20;
+          headOffsetX = 0;
+          headOffsetY = 3;
+          break;
+        case "left":
+          headImgPos = 30;
+          headOffsetX = -3;
+          headOffsetY = 0;
+          break;
+      }
+      this.ctx.drawImage(
+        this.headImg,
+        headImgPos,
+        0,
+        10,
+        10,
+        this.snake[0].x + headOffsetX,
+        this.snake[0].y + headOffsetY,
+        this.width,
+        this.height
+      );
+    } else {
+      let scoreMultiplier = this.score / 2;
+      this.width = 100 + scoreMultiplier;
+      this.height = 100 + scoreMultiplier;
+      this.ctx.drawImage(
+        this.graveImg,
+        this.snake[0].x,
+        this.snake[0].y,
         this.width,
         this.height
       );
     }
-    switch (this.direction) {
-      case "top":
-        headImgPos = 0;
-        break;
-      case "right":
-        headImgPos = 10;
-        break;
-      case "bottom":
-        headImgPos = 20;
-        break;
-      case "left":
-        headImgPos = 30;
-        break;
-    }
-    this.ctx.drawImage(
-      this.headImg,
-      headImgPos,
-      0,
-      10,
-      10,
-      this.snake[0].x + 3,
-      this.snake[0].y,
-      this.width,
-      this.height
-    );
   }
 
   move() {
@@ -138,7 +166,10 @@ export default class Snake {
       const hasCollided =
         this.snake[i].x === this.snake[0].x &&
         this.snake[i].y === this.snake[0].y;
-      if (hasCollided) return true;
+      if (hasCollided) {
+        this.alive = false;
+        return true;
+      }
     }
   }
 
@@ -146,13 +177,14 @@ export default class Snake {
     for (let i = 0; i < entity.snake.length; i++) {
       if (
         ((this.snake[0].x >= entity.snake[i].x &&
-          this.snake[0].x <= entity.snake[i].x + this.width) ||
+          this.snake[0].x <= entity.snake[i].x + entity.width) ||
           (this.snake[0].x + this.width >= entity.snake[i].x &&
-            this.snake[0].x + this.width <= entity.snake[i].x + this.width)) &&
+            this.snake[0].x + this.width <=
+              entity.snake[i].x + entity.width)) &&
         ((this.snake[0].y >= entity.snake[i].y &&
-          this.snake[0].y <= entity.snake[i].y + this.height) ||
+          this.snake[0].y <= entity.snake[i].y + entity.height) ||
           (this.snake[0].y + this.height >= entity.snake[i].y &&
-            this.snake[0].y + this.height <= entity.snake[i].y + this.height))
+            this.snake[0].y + this.height <= entity.snake[i].y + entity.height))
       )
         return true;
     }
@@ -166,6 +198,7 @@ export default class Snake {
 
   drawGameOver(toggle) {
     if (toggle) {
+      this.ctx.fillStyle = this.color;
       this.ctx.font = "48px serif";
       this.ctx.fillText(
         `${this.name} died!`,
